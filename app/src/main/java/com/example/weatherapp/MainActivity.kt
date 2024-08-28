@@ -57,7 +57,7 @@
 
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-            val weatherWorkRequest  = PeriodicWorkRequestBuilder<WeatherWorker>(5,TimeUnit.SECONDS).build()
+            val weatherWorkRequest  = PeriodicWorkRequestBuilder<WeatherWorker>(15,TimeUnit.MINUTES).build()
             WorkManager.getInstance(this).enqueue(weatherWorkRequest)
 
             weatherButton.setOnClickListener {

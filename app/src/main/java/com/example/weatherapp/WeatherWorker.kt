@@ -17,7 +17,9 @@ class WeatherWorker(appContext: Context, workerParams: WorkerParameters) : Worke
     }
 
     private fun fetchWeatherData() {
-        val weatherUrl = "https://api.openweathermap.org/data/2.5/weather?lat={LATITUDE}&lon={LONGITUDE}&units=metric&appid={API_KEY}"
+        val cityName = "thimphu"
+        val  apiKey ="442da14930cad8ea2d0302fc260bc92f"
+        val weatherUrl = "https://api.openweathermap.org/data/2.5/weather?q=$cityName&units=metric&appid=$apiKey"
 
         val queue = Volley.newRequestQueue(applicationContext)
         val stringReq = StringRequest(Request.Method.GET, weatherUrl, { response ->

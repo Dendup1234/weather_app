@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/sunny_gradient"
+    android:background="@drawable/img_3"
     android:paddingBottom="20dp"
     tools:context=".MainActivity">
 
@@ -37,7 +37,7 @@
             android:fontFamily="sans-serif-light"
             android:text="City"
             android:gravity="center"
-            android:textColor="@color/white"
+            android:textColor="@color/black"
             android:textSize="50sp"
             android:textStyle="bold" />
 
@@ -61,7 +61,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="0°C"
-                android:textColor="@color/white"
+                android:textColor="@color/black"
                 android:textSize="40sp"
                 android:gravity="center" />
 
@@ -71,7 +71,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
                 android:text="Sunny"
-                android:textColor="@color/white"
+                android:textColor="@color/black"
                 android:textSize="40sp"
                 android:gravity="center" />
 
