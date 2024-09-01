@@ -8,7 +8,6 @@
     android:paddingBottom="20dp"
     tools:context=".MainActivity">
 
-    <!-- FloatingActionButton should be defined first -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/weatherButton"
         android:layout_width="wrap_content"
@@ -22,12 +21,13 @@
         android:backgroundTint="@color/white" />
 
     <LinearLayout
+        android:id="@+id/contentLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_above="@id/weatherButton"
-        android:paddingBottom="16dp"
-        android:gravity="center_vertical">
+        android:layout_alignParentTop="true"
+        android:layout_above="@id/recycler_view_weather"
+        android:paddingBottom="16dp">
 
         <TextView
             android:id="@+id/CityTextView"
@@ -77,5 +77,14 @@
 
         </LinearLayout>
     </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view_weather"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/weatherButton"
+        android:layout_margin="16dp"
+        android:layout_marginTop="8dp"
+        tools:listitem="@layout/item_weather" />
 
 </RelativeLayout>

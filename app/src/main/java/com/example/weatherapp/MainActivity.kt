@@ -16,8 +16,14 @@
     import com.google.android.gms.location.LocationServices
     import org.json.JSONObject
     import android.Manifest
+    import android.content.Context
+    import android.content.Intent
     import android.content.SharedPreferences
+    import android.graphics.Rect
+    import android.view.View
     import android.widget.EditText
+    import androidx.recyclerview.widget.LinearLayoutManager
+    import androidx.recyclerview.widget.RecyclerView
 
     import com.google.android.material.floatingactionbutton.FloatingActionButton
     import androidx.work.Data
@@ -57,8 +63,12 @@
 
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-            val weatherWorkRequest  = PeriodicWorkRequestBuilder<WeatherWorker>(5,TimeUnit.SECONDS).build()
+            // Schedule the WeatherUpdateWorker to run periodically every 15 minutes
+            val weatherWorkRequest = PeriodicWorkRequestBuilder<WeatherUpdateWorker>(15, TimeUnit.MINUTES)
+                .build()
             WorkManager.getInstance(this).enqueue(weatherWorkRequest)
+
+            // For the recyclerview
 
             weatherButton.setOnClickListener {
                 val cityName = cityEditView.text.toString().trim()
@@ -112,9 +122,11 @@
                     if (location != null) {
                         weather_url = "https://api.openweathermap.org/data/2.5/weather?lat=${location.latitude}&lon=${location.longitude}&units=metric&appid=${api_keys}"
                     }
+                    getWeatherData()
+
                     // this function will
                     // fetch data from URL
-                    getWeatherData()
+
                 }
                 .addOnFailureListener { exception ->
                     Toast.makeText(this, "Location Permission not granted", Toast.LENGTH_SHORT).show()
@@ -125,7 +137,6 @@
             // Instantiate the RequestQueue.
             val queue = Volley.newRequestQueue(this)
             val url: String = weather_url
-
             // Request a string response
             // from the provided URL.
             val stringReq = StringRequest(
@@ -143,7 +154,7 @@
                     cityTextView.text = "$city".trimIndent()
                     temperatureTextView.text = "$temperature°C".trimIndent()
                     weatherTextView.text = "$weatherDescription".trimIndent()
-                    switchLayout(weatherDescription, temperature, city)
+                    switchLayout(weatherDescription, temperature, city, isLocation = true)
                 },
                 {
                     weatherTextView.text = "Failed to retrieve weather data"
@@ -155,7 +166,7 @@
         }
 
 
-        private fun getWeatherData(cityName:String) {
+        private fun getWeatherData(cityName:String = "",isLocation: Boolean = false) {
             val weather_url = "https://api.openweathermap.org/data/2.5/weather?q=$cityName&units=metric&appid=$api_keys"
             val queue = Volley.newRequestQueue(this)
             val url: String = weather_url
@@ -175,7 +186,7 @@
                     cityTextView.text = "$city".trimIndent()
                     temperatureTextView.text = "$temperature°C".trimIndent()
                     weatherTextView.text = "$weatherDescription".trimIndent()
-                    switchLayout(weatherDescription, temperature, city)
+                    switchLayout(weatherDescription, temperature, city,isLocation)
                 },
                 {
                     weatherTextView.text = "Failed to retrieve weather data"
@@ -186,11 +197,10 @@
             queue.add(stringReq)
         }
 
-        private fun switchLayout(weatherDescription: String, temperature: String, city: String) {
+        private fun switchLayout(weatherDescription: String, temperature: String, city: String,isLocation: Boolean) {
             when {
                 weatherDescription.contains("clear") || weatherDescription.contains("sunny") ->{
                     setContentView(R.layout.activity_main)
-
                 }
 
                 weatherDescription.contains("rain") || weatherDescription.contains("shower") ->{
@@ -202,18 +212,22 @@
                 }
 
                 weatherDescription.contains("cloud") || weatherDescription.contains("overcast") -> {
+
                     setContentView(
                         R.layout.activity_main_cloudy
+
                     )
-
-
                 }
 
                 else -> {
                     setContentView(R.layout.acitivity_main_unknown)
                 }
+            }
+            if(isLocation == true){
+                setupRecyclerView()
 
             }
+
             cityTextView = findViewById(R.id.CityTextView)
             weatherTextView = findViewById(R.id.weatherTextView)
             temperatureTextView = findViewById(R.id.temperatureTextView)
@@ -224,6 +238,7 @@
             weatherTextView.text = weatherDescription
 
             resetButton()
+
         }
         private fun resetButton(){
             weatherButton = findViewById(R.id.weatherButton)
@@ -247,8 +262,38 @@
                 }
                 locationButton.setOnClickListener {
                     checkForPermission()
+
                 }
             }
 
         }
+
+        @SuppressLint("Range")
+        private fun getWeatherDataFromDatabase(): List<WeatherData> {
+            val dbHelper = WeatherDatabaseHelper(this)
+            val weatherDataList = mutableListOf<WeatherData>()
+
+            val cursor = dbHelper.readableDatabase.query(
+                WeatherDatabaseHelper.TABLE_NAME,
+                null, null, null, null, null, "${WeatherDatabaseHelper.COLUMN_ID} DESC"
+            )
+
+            while (cursor.moveToNext()) {
+                val city = cursor.getString(cursor.getColumnIndex(WeatherDatabaseHelper.COLUMN_CITY))
+                val temperature = cursor.getString(cursor.getColumnIndex(WeatherDatabaseHelper.COLUMN_TEMP))
+                val windSpeed = cursor.getString(cursor.getColumnIndex(WeatherDatabaseHelper.COLUMN_WIND_SPEED))
+                val weatherDescription = cursor.getString(cursor.getColumnIndex(WeatherDatabaseHelper.COLUMN_WEATHER))
+                val time = cursor.getString(cursor.getColumnIndex(WeatherDatabaseHelper.COLUMN_TIME))
+
+                weatherDataList.add(WeatherData(weatherDescription, temperature, windSpeed, time))
+            }
+            cursor.close()
+            return weatherDataList
+        }
+        private fun setupRecyclerView() {
+            val recyclerView: RecyclerView = findViewById(R.id.recycler_view_weather)
+            recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+            recyclerView.adapter = WeatherAdapter(getWeatherDataFromDatabase())
+        }
+
     }
